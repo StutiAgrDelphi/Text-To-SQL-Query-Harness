@@ -1,0 +1,96 @@
+{
+  "brand": {
+    "smashcraft": "SmashCraft Burgers",
+    "smash craft": "SmashCraft Burgers",
+    "smash craft burgers": "SmashCraft Burgers",
+    "smashcraft burger": "SmashCraft Burgers",
+    "smash": "SmashCraft Burgers",
+    "tacoria": "La Tacoria",
+    "la taco": "La Tacoria",
+    "latacoria": "La Tacoria",
+    "tacoria cantina": "La Tacoria",
+    "slice and dice": "Slice & Dice Pizzeria",
+    "slice n dice": "Slice & Dice Pizzeria",
+    "slicendice": "Slice & Dice Pizzeria",
+    "dice pizzeria": "Slice & Dice Pizzeria",
+    "slice dice": "Slice & Dice Pizzeria",
+    "tokyo express ramen": "Tokyo Express",
+    "tokyo ramen": "Tokyo Express",
+    "tokyo": "Tokyo Express",
+    "green garden": "Green Garden Salads",
+    "green garden salad": "Green Garden Salads",
+    "golden wok": "Golden Wok Express",
+    "wok express": "Golden Wok Express"
+  },
+  "city": {
+    "sf": "San Francisco",
+    "san fran": "San Francisco",
+    "nyc": "New York",
+    "ny": "New York",
+    "new york city": "New York",
+    "sa": "San Antonio",
+    "san antone": "San Antonio",
+    "chi town": "Chicago",
+    "chitown": "Chicago",
+    "beantown": "Boston",
+    "atx": "Austin"
+  },
+  "category": {
+    "burgers": "burger",
+    "mexican food": "mexican",
+    "tacos": "mexican",
+    "tex mex": "mexican",
+    "pizzas": "pizza",
+    "italian": "pizza",
+    "japanese": "asian",
+    "chinese": "asian",
+    "ramen": "asian",
+    "sides": "side",
+    "appetizers": "side",
+    "drinks": "beverage",
+    "drink": "beverage",
+    "desserts": "dessert",
+    "sweets": "dessert"
+  },
+  "loyalty_tier": {
+    "vip": "platinum",
+    "top tier": "platinum",
+    "basic": "bronze",
+    "entry level": "bronze"
+  },
+  "order_channel": {
+    "take out": "takeout",
+    "to go": "takeout",
+    "delivery order": "delivery",
+    "eat in": "dine-in",
+    "in store": "dine-in"
+  },
+  "payment_method": {
+    "credit": "credit_card",
+    "cc": "credit_card",
+    "visa": "credit_card",
+    "mastercard": "credit_card",
+    "amex": "credit_card",
+    "debit": "debit_card",
+    "apay": "apple_pay",
+    "applepay": "apple_pay"
+  },
+  "restaurants.status": {
+    "open": "active",
+    "shut down": "closed",
+    "shut": "closed",
+    "shuttered": "closed"
+  },
+  "customers.status": {
+    "churned": "inactive",
+    "lapsed": "inactive"
+  },
+  "orders.status": {
+    "success": "completed",
+    "successful": "completed",
+    "canceled": "cancelled",
+    "cancel": "cancelled",
+    "refund": "refunded",
+    "returned": "refunded"
+  }
+}
