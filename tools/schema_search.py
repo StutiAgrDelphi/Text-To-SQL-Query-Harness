@@ -24,11 +24,6 @@ def embed(text: str):
 def search_schema(
     query: Annotated[str, Field(description="The user's question, or a short paraphrase of what data is needed, used to semantically find the most relevant tables/columns.")],
 ) -> str:
-    """Stage 5 — schema retrieval. ALWAYS call this near the start of answering a
-    question, before writing SQL, to find which tables/columns are actually relevant.
-    Returns the closest-matching table/column descriptions from the curated schema
-    catalog. Follow up with get_table_schema on the specific tables it returns for
-    the exact, full column list before writing SQL — never guess a column name."""
     vec = embed(query)
     conn = get_connection()
     try:

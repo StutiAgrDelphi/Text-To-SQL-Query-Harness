@@ -20,11 +20,6 @@ TABLE_PATTERN = re.compile(r"\b(?:from|join)\s+([a-zA-Z_][a-zA-Z0-9_\.]*)", re.I
 def check_access(
     query: Annotated[str, Field(description="The SQL SELECT query about to be executed, checked against the table/column allow-list before running.")],
 ) -> str:
-    """Stage 7 — security / access check. ALWAYS call this on the SQL you're about
-    to run, BEFORE run_sql. Verifies every referenced table is on the approved
-    allow-list and flags any restricted column (e.g. customer email). Note: this is
-    a scoped stand-in for row-level security appropriate to this single-role POC —
-    a real deployment would also enforce per-user row filters here."""
     referenced = {t.split(".")[-1].lower() for t in TABLE_PATTERN.findall(query)}
     disallowed = referenced - ALLOWED_TABLES
     if disallowed:

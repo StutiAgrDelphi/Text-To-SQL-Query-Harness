@@ -8,9 +8,6 @@ from db import get_connection
 def run_sql(
     query: Annotated[str, Field(description="A validated, read-only SELECT query to execute — call this only after check_access and validate_sql have both passed.")],
 ) -> str:
-    """Stage 11 — execution. Runs a read-only SELECT query against the restaurant DB
-    and returns up to 50 rows. Only call this after check_access and validate_sql
-    have both returned OK/VALID — never execute an unvalidated query."""
     if not query.strip().lower().startswith("select"):
         return "Error: only SELECT queries are allowed."
     conn = get_connection()

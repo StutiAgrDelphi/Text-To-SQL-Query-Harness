@@ -13,10 +13,6 @@ FORBIDDEN_PATTERN = re.compile(
 def validate_sql(
     query: Annotated[str, Field(description="The SQL SELECT query to validate before executing it.")],
 ) -> str:
-    """Stage 10 — SQL validation. ALWAYS call this after check_access and BEFORE
-    run_sql. Confirms the query is SELECT-only, contains no write/DDL statements,
-    and is structurally valid against the real database (via EXPLAIN) — catching
-    typo'd table/column names before execution instead of after."""
     stripped = query.strip().rstrip(";")
 
     if not stripped.lower().startswith("select"):

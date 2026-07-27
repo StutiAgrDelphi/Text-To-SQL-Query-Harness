@@ -24,10 +24,6 @@ def embed(text: str):
 def search_example_sql(
     query: Annotated[str, Field(description="The user's question, used to find similar previously-solved questions and their correct SQL.")],
 ) -> str:
-    """Stage 8 — example SQL retrieval. Call this after schema/glossary/entity
-    resolution, before writing SQL, to see how similar questions were correctly
-    answered before. Use these as structural patterns (joins, filters, aggregation
-    style) — don't copy them verbatim if the current question's specifics differ."""
     vec = embed(query)
     conn = get_connection()
     try:
