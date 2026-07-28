@@ -69,6 +69,7 @@ def build_agent():
         api_version="preview",
     )
     return create_harness_agent(
+        name="Restaurant Text To SQL",
         client=client,
         tools=[
             list_tables, get_table_schema, run_sql,
@@ -77,4 +78,7 @@ def build_agent():
         ],
         agent_instructions=INSTRUCTIONS,
         disable_web_search=True,
+        disable_mode=True,
+        disable_todo=True,
+        loop_max_iterations=15, 
     )
