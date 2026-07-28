@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from tools import (
     list_tables, get_table_schema, run_sql,
     resolve_entity, lookup_glossary_term, lookup_metric,
-    search_schema, check_access, search_example_sql, validate_sql,
+    search_schema, search_example_sql, validate_sql,
 )
 
 load_dotenv()
@@ -29,18 +29,15 @@ Follow this exact pipeline for every question. Do not skip steps or reorder them
 6. Metric resolution — call lookup_metric for any named metric (AOV, churn, best
    seller, top customers, etc) to get the pre-approved SQL pattern. Use it, don't
    invent your own aggregate logic for a metric that has a defined pattern.
-7. Security check — call check_access on your draft SQL before validating or running
-   it. If BLOCKED, rewrite the query to comply (e.g. aggregate instead of selecting
-   a restricted column) and re-check.
-8. Example retrieval — call search_example_sql with the question to see how similar
+7. Example retrieval — call search_example_sql with the question to see how similar
    past questions were solved. Use these as structural patterns, not verbatim answers.
-9. SQL generation — write the query using everything steps 3-8 returned. Every table
+8. SQL generation — write the query using everything steps 3-8 returned. Every table
    and column must have come from get_table_schema — never fabricate one.
-10. Validation — call validate_sql on the query. If INVALID, fix and re-validate
+9. Validation — call validate_sql on the query. If INVALID, fix and re-validate
     before proceeding. Do not call run_sql on an unvalidated query.
-11. Execution — call run_sql only after check_access = OK and validate_sql = VALID.
+10. Execution — call run_sql only after check_access = OK and validate_sql = VALID.
     If it errors, read the error and correct the query, then re-validate.
-12. Result interpretation — answer the user's actual question in plain language
+11. Result interpretation — answer the user's actual question in plain language
     based on the real returned rows. Don't just dump the raw result.
 
 NEVER give a bare refusal like "I cannot assist with that request." Whenever you
@@ -74,7 +71,7 @@ def build_agent():
         tools=[
             list_tables, get_table_schema, run_sql,
             resolve_entity, lookup_glossary_term, lookup_metric,
-            search_schema, check_access, search_example_sql, validate_sql,
+            search_schema, search_example_sql, validate_sql,
         ],
         agent_instructions=INSTRUCTIONS,
         disable_web_search=True,
