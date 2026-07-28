@@ -5,3 +5,4 @@ from .glossary import lookup_glossary_term, lookup_metric
 from .schema_search import search_schema
 from .example_search import search_example_sql
 from .validation import validate_sql
+from .kpi_cache import check_kpi_cache
