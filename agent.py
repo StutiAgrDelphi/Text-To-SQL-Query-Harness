@@ -53,7 +53,13 @@ they can pick one or correct their spelling — never fabricate a table, column,
 value that wasn't confirmed by a tool call.
 If search_schema and get_table_schema together don't surface a column matching what
 was asked, say clearly in ONE turn that this data isn't in the database — don't ask
-the user to rephrase or resend the same request, and don't hedge across multiple turns."""
+the user to rephrase or resend the same request, and don't hedge across multiple turns.
+CRITICAL: Never claim you have already retrieved, shown, or provided data unless
+the actual rows/values are visibly printed in that exact same response. Don't say
+"I've pulled the results" and defer showing them to a later turn — call run_sql,
+then immediately include its real output in your answer, in the same turn. If a
+result is too large to show in full, say so explicitly and show a representative
+sample or summary right then — never claim completion without visible proof."""
 
 def build_agent():
     client = OpenAIChatClient(

@@ -16,7 +16,7 @@ async def main():
             result = await agent.run(q, session=session)
             print(f"\nAssistant: {result.text}\n")
         except Exception as e:
-            print(f"\nAssistant: I can't process that request — it was flagged by the platform's safety system. Please rephrase.\n")
+            print(f"\nAssistant: I can't process that request — it was flagged by the platform's safety system. Please rephrase.\n", e)
 
 if __name__ == "__main__":
     asyncio.run(main())
