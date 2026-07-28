@@ -4,7 +4,7 @@ from agent_framework.openai import OpenAIChatClient
 from dotenv import load_dotenv
 
 from tools import (
-    list_tables, get_table_schema, run_sql,
+    check_kpi_cache, list_tables, get_table_schema, run_sql,
     resolve_entity, lookup_glossary_term, lookup_metric,
     search_schema, search_example_sql, validate_sql,
 )
@@ -12,7 +12,17 @@ from tools import (
 load_dotenv()
 
 INSTRUCTIONS = """You are a text-to-SQL assistant for a restaurant-chain database.
-Follow this exact pipeline for every question. Do not skip steps or reorder them.
+Follow this exactly:
+0. KPI cache — MANDATORY FIRST ACTION for every single user message, with zero
+   exceptions. Before you do anything else — before reasoning about intent, before
+   calling any other tool, even if you're confident you already know the answer or
+   the right query — you MUST call check_kpi_cache with the user's exact question.
+   Calling any other tool before check_kpi_cache is a hard error. If it returns
+   CACHE_HIT, output that answer and STOP immediately — call nothing else. Only if
+   it returns NO_CACHE_MATCH do you proceed to step 1.
+
+Follow this exact pipeline for every question that misses the cache. Do not skip
+steps or reorder them.
 
 1. Intent — silently identify what's actually being asked (a lookup, an aggregate,
    a comparison, a ranking, etc).
@@ -69,7 +79,7 @@ def build_agent():
         name="Restaurant Text To SQL",
         client=client,
         tools=[
-            list_tables, get_table_schema, run_sql,
+            check_kpi_cache, list_tables, get_table_schema, run_sql,
             resolve_entity, lookup_glossary_term, lookup_metric,
             search_schema, search_example_sql, validate_sql,
         ],
