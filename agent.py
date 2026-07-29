@@ -7,6 +7,7 @@ from tools import (
     check_kpi_cache, list_tables, get_table_schema, run_sql,
     resolve_entity, lookup_glossary_term, lookup_metric,
     search_schema, search_example_sql, validate_sql,
+    explore_related
 )
 
 load_dotenv()
@@ -24,8 +25,34 @@ Follow this exactly:
 Follow this exact pipeline for every question that misses the cache. Do not skip
 steps or reorder them.
 
-1. Intent — silently identify what's actually being asked (a lookup, an aggregate,
-   a comparison, a ranking, etc).
+1. Intent — silently identify what's actually being asked. Classify into
+   REPORT_MODE (the question asks for insights, a summary, an executive
+   update, "how are we doing", or otherwise doesn't name one specific
+   metric) vs LOOKUP_MODE (asks for a specific number, list, or comparison).
+   If REPORT_MODE, follow the REPORT MODE instructions below instead of
+   continuing linearly through steps 2-12.
+
+REPORT MODE (only when step 1 classifies the question this way):
+a. Call explore_related on the central business concept in the question
+   (default to "revenue" if the user gives no seed at all, e.g. "how's the
+   business doing"). If explore_related returns nothing, fall back to this
+   default set: revenue, AOV, top customers, revenue by channel.
+b. From the results, pick 3-5 concrete sub-questions that together make a
+   good executive update — the seed metric plus 2-4 related ones surfaced
+   by explore_related. Don't restate the same metric multiple ways.
+c. Run each sub-question through steps 2-11 exactly as normal — entity
+   extraction through result interpretation — treating it as an independent
+   question and reusing every tool the same way you would for a standalone
+   query.
+d. Once every sub-question has a result, write a short narrative synthesis:
+   one headline finding, 2-3 supporting numbers pulled from the sub-question
+   results, and — only if the numbers actually suggest one — a one-line note
+   on a likely driver. Never speculate beyond what the numbers show. Close
+   with one concrete recommendation or follow-up question, if the data
+   supports one.
+e. Chart the headline finding only, never every sub-question: bar chart for
+   a comparison across categories, pie chart for a share/breakdown. If
+   neither fits, skip the chart.
 2. Entity extraction — identify any specific brands, cities, categories, tiers,
    channels, payment methods, or statuses mentioned or implied in the question.
 3. Entity resolution — call resolve_entity on EVERY entity from step 2. Never assume
@@ -36,9 +63,13 @@ steps or reorder them.
 5. Schema retrieval — call search_schema with the question to find relevant
    tables/columns, then call get_table_schema on the specific table(s) it points to
    for the exact, full column list. Never guess a column name.
-6. Metric resolution — call lookup_metric for any named metric (AOV, churn, best
+6a. Metric resolution — call lookup_metric for any named metric (AOV, churn, best
    seller, top customers, etc) to get the pre-approved SQL pattern. Use it, don't
    invent your own aggregate logic for a metric that has a defined pattern.
+6b. Related context — for comparative, "why", or broad questions (not simple
+    single-value lookups), call explore_related on the main glossary term or
+    table involved to see what else is conceptually connected. Use this to
+    decide if the query should also surface a related metric.
 7. Example retrieval — call search_example_sql with the question to see how similar
    past questions were solved. Use these as structural patterns, not verbatim answers.
 8. SQL generation — write the query using everything steps 3-8 returned. Every table
@@ -83,11 +114,12 @@ def build_agent():
             check_kpi_cache, list_tables, get_table_schema, run_sql,
             resolve_entity, lookup_glossary_term, lookup_metric,
             search_schema, search_example_sql, validate_sql,
+            explore_related
         ],
         skills_paths="./skills",
         agent_instructions=INSTRUCTIONS,
         disable_web_search=True,
         disable_mode=True,
         disable_todo=True,
-        loop_max_iterations=15, 
+        loop_max_iterations=5, 
     )
