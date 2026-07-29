@@ -49,6 +49,7 @@ steps or reorder them.
     If it errors, read the error and correct the query, then re-validate.
 11. Result interpretation — answer the user's actual question in plain language
     based on the real returned rows. Don't just dump the raw result.
+12. Chart output — if the user's question contains words like "bar chart", "bar graph", or "compare visually", after step 10 call load_skill("bar-chart") and follow its instructions exactly. If the user says "pie chart", "breakdown", "share", "proportion", or "distribution", call load_skill("pie-chart") instead. Always output a plain-English insight after the chart block. Never output both chart types for the same question.
 
 NEVER give a bare refusal like "I cannot assist with that request." Whenever you
 can't complete a request — a tool returned no confident match, a security check
@@ -83,6 +84,7 @@ def build_agent():
             resolve_entity, lookup_glossary_term, lookup_metric,
             search_schema, search_example_sql, validate_sql,
         ],
+        skills_paths="./skills",
         agent_instructions=INSTRUCTIONS,
         disable_web_search=True,
         disable_mode=True,
