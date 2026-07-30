@@ -1,3 +1,4 @@
+from mcp.client import session
 import os
 import re
 import psycopg2
@@ -37,20 +38,24 @@ def fetch_foreign_keys(cur):
     return cur.fetchall()
 
 def fetch_glossary_rows(cur):
-    cur.execute("SELECT entry_type, term, definition FROM glossary_catalog;")
+    cur.execute("""
+        SELECT entry_type, term, definition, formula_sql,
+               maps_to_table, maps_to_column, synonym_of
+        FROM glossary_catalog;
+    """)
     return cur.fetchall()
 
-def parse_maps_to(definition: str):
-    """Best-effort: pull a 'table.column' or 'table table' reference out of the
-    free-text definition, since your TERMS/METRICS dicts were authored in a
-    consistent style. Returns ('column', 'table.col') or ('table', 'table') or None."""
-    m = re.search(r"\b([a-z_]+)\.([a-z_]+)\b", definition)
-    if m:
-        return "column", f"{m.group(1)}.{m.group(2)}"
-    m = re.search(r"\b([a-z_]+) table\b", definition)
-    if m:
-        return "table", m.group(1)
-    return None
+# def parse_maps_to(definition: str):
+#     """Best-effort: pull a 'table.column' or 'table table' reference out of the
+#     free-text definition, since your TERMS/METRICS dicts were authored in a
+#     consistent style. Returns ('column', 'table.col') or ('table', 'table') or None."""
+#     m = re.search(r"\b([a-z_]+)\.([a-z_]+)\b", definition)
+#     if m:
+#         return "column", f"{m.group(1)}.{m.group(2)}"
+#     m = re.search(r"\b([a-z_]+) table\b", definition)
+#     if m:
+#         return "table", m.group(1)
+#     return None
 
 def main():
     conn = psycopg2.connect(DATABASE_URL)
@@ -101,32 +106,36 @@ def main():
         print(f"Loaded {len(fk_rows)} foreign keys.")
 
         # Glossary terms/metrics + best-effort MAPS_TO
-        unmapped = []
-        for entry_type, term, definition in glossary_rows:
+        for entry_type, term, definition, formula_sql, maps_table, maps_col, synonym_of in glossary_rows:
             key = f"{entry_type}:{term}"
+            label = "Metric" if entry_type == "metric" else "BusinessTerm"   # real node types
             session.run(
-                "MERGE (g:GlossaryEntry {key: $key}) SET g.term = $term, g.entry_type = $etype, g.definition = $definition",
-                key=key, term=term, etype=entry_type, definition=definition,
-                # note: 'def' is a keyword in some drivers' param binding; using def_ then aliasing below
+                f"""
+                MERGE (g:{label}:GlossaryEntry {{key: $key}})
+                SET g.term = $term, g.definition = $definition, g.formula_sql = $formula_sql
+                """,
+                key=key, term=term, definition=definition, formula_sql=formula_sql,
             )
-        for entry_type, term, definition in glossary_rows:
-            key = f"{entry_type}:{term}"
-            parsed = parse_maps_to(definition)
-            if parsed is None:
-                unmapped.append(key)
-                continue
-            kind, target = parsed
-            if kind == "column":
+            if maps_col:
                 session.run(
-                    "MATCH (g:GlossaryEntry {key: $key}), (c:Column {key: $target}) MERGE (g)-[:MAPS_TO]->(c)",
-                    key=key, target=target,
+                    "MATCH (g:GlossaryEntry {key:$key}), (c:Column {key:$target}) MERGE (g)-[:MAPS_TO]->(c)",
+                    key=key, target=f"{maps_table}.{maps_col}",
                 )
-            else:
+            elif maps_table:
                 session.run(
-                    "MATCH (g:GlossaryEntry {key: $key}), (t:Table {name: $target}) MERGE (g)-[:MAPS_TO]->(t)",
-                    key=key, target=target,
+                    "MATCH (g:GlossaryEntry {key:$key}), (t:Table {name:$target}) MERGE (g)-[:MAPS_TO]->(t)",
+                    key=key, target=maps_table,
                 )
-        print(f"Loaded {len(glossary_rows)} glossary entries. Unmapped (check manually): {unmapped}")
+
+        # separate pass for synonyms, now that all entries exist
+        for entry_type, term, *_rest, synonym_of in glossary_rows:
+            if synonym_of:
+                key = f"{entry_type}:{term}"
+                session.run(
+                    "MATCH (a:GlossaryEntry {key:$a}), (b:GlossaryEntry {key:$b}) "
+                    "MERGE (a)-[:SYNONYM_OF]->(b) MERGE (b)-[:SYNONYM_OF]->(a)",
+                    a=key, b=synonym_of,
+                )
 
         # Curated relationships
         for a, b in RELATED_TERM_PAIRS:
@@ -139,6 +148,14 @@ def main():
                 a=a, b=b,
             )
         print(f"Loaded {len(RELATED_TERM_PAIRS)} curated relationships.")
+
+
+        # verify every non-null maps_to actually landed as an edge
+        orphans = session.run(
+            "MATCH (g:GlossaryEntry) WHERE NOT (g)-[:MAPS_TO]->() AND NOT (g)-[:SYNONYM_OF]->() RETURN g.key AS k"
+        ).value("k")
+        if orphans:
+            print(f"WARNING: these entries have no MAPS_TO or SYNONYM_OF edge: {orphans}")
 
     driver.close()
 

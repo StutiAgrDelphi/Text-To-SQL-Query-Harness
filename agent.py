@@ -121,5 +121,5 @@ def build_agent():
         disable_web_search=True,
         disable_mode=True,
         disable_todo=True,
-        loop_max_iterations=5, 
+        loop_max_iterations=10, 
     )
